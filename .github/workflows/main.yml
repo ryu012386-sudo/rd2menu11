@@ -5,6 +5,8 @@ jobs:
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
+      - name: show tree
+        run: ls -R
       - name: Theos
         run: |
           git clone --recursive https://github.com/theos/theos.git "$HOME/theos"
@@ -12,11 +14,14 @@ jobs:
       - run: brew install ldid
       - name: Build
         run: |
+          MK=$(find . -name Makefile -not -path '*/theos/*' | head -n1)
+          if [ -z "$MK" ]; then echo "Makefile が見つからない"; ls -R; exit 1; fi
+          DIR=$(dirname "$MK")
+          echo "== build dir: $DIR =="
+          cd "$DIR"
           make clean || true
           make
-          echo "==== dylib ===="
-          find . -name 'RD2FlagMenu.dylib' -print
-          DY=$(find . -name 'RD2FlagMenu.dylib' | head -n1)
+          DY=$(find "$GITHUB_WORKSPACE" -name 'RD2FlagMenu.dylib' | head -n1)
           cp "$DY" "$GITHUB_WORKSPACE/RD2FlagMenu.dylib"
       - uses: actions/upload-artifact@v4
         with:
