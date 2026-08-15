@@ -8,22 +8,22 @@ jobs:
       - name: unzip build package
         run: |
           ZIP=$(find . -name 'RD2FlagMenu-build.zip' | head -n1)
-          if [ -n "$ZIP" ]; then echo "unzip $ZIP"; unzip -o "$ZIP" -d _src; fi
+          if [ -n "$ZIP" ]; then echo "unzip $ZIP"; unzip -o "$ZIP" -d _src || true; fi
           ls -R
       - name: Theos
         run: |
           git clone --recursive https://github.com/theos/theos.git "$HOME/theos"
-          echo "THEOS=$HOME/theos" >> "$GITHUB_ENV"
+          echo "THEOS=$HOME/theos" >> "$GITH
       - run: brew install ldid
       - name: Build
         run: |
-          MK=$(find . -name Makefile -not -path '*/theos/*' | head -n1)
+          MK=$(find . -name Makefile -not -p
           if [ -z "$MK" ]; then echo "Makefile なし"; ls -R; exit 1; fi
-          DIR=$(dirname "$MK"); echo "build dir: $DIR"; cd "$DIR"
+          DIR=$(dirname "$MK"); echo "build
           make clean || true
           make
           DY=$(find "$GITHUB_WORKSPACE" -name 'RD2FlagMenu.dylib' | head -n1)
-          cp "$DY" "$GITHUB_WORKSPACE/RD2FlagMenu.dylib"
+          cp "$DY" "$GITHUB_WORKSPACE/RD2Fla
       - uses: actions/upload-artifact@v4
         with:
           name: RD2FlagMenu-dylib
