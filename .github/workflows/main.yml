@@ -13,17 +13,17 @@ jobs:
       - name: Theos
         run: |
           git clone --recursive https://github.com/theos/theos.git "$HOME/theos"
-          echo "THEOS=$HOME/theos" >> "$GITH
+          echo "THEOS=$HOME/theos" >> "$GITHUB_ENV"
       - run: brew install ldid
       - name: Build
         run: |
-          MK=$(find . -name Makefile -not -p
+          MK=$(find . -name Makefile -not -path '*/theos/*' | head -n1)
           if [ -z "$MK" ]; then echo "Makefile なし"; ls -R; exit 1; fi
-          DIR=$(dirname "$MK"); echo "build
+          DIR=$(dirname "$MK"); echo "build dir: $DIR"; cd "$DIR"
           make clean || true
           make
           DY=$(find "$GITHUB_WORKSPACE" -name 'RD2FlagMenu.dylib' | head -n1)
-          cp "$DY" "$GITHUB_WORKSPACE/RD2Fla
+          cp "$DY" "$GITHUB_WORKSPACE/RD2FlagMenu.dylib"
       - uses: actions/upload-artifact@v4
         with:
           name: RD2FlagMenu-dylib
