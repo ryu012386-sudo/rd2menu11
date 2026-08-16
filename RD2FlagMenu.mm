@@ -1,12 +1,16 @@
 // ============================================================
-//  RD2 Flag Menu 窶・髱櫁┳迯・・阡ｵMOD繝｡繝九Η繝ｼ・医ョ繝ｼ繧ｿ繝輔Λ繧ｰ譁ｹ蠑擾ｼ・//  繝ｻUnityFramework縺ｯ髱咏噪繝医Λ繝ｳ繝昴Μ繝ｳ謾ｹ騾貂医∩・育ｽｲ蜷榊燕縺ｫ辟ｼ霎ｼ・・//  繝ｻ縺薙・dylib縺ｯ縲後ヵ繝ｩ繧ｰ(RW繝・・繧ｿ)繧・/0譖ｸ縺上□縺代阪〒繝医げ繝ｫ
-//    竊・繧ｳ繝ｼ繝画隼螟峨§繧・↑縺・・縺ｧiOS18縺ｧ繧ゅけ繝ｩ繝・す繝･縺励↑縺・//  繝ｻ繝輔Ο繝ｼ繝・ぅ繝ｳ繧ｰ軸 竊・邏ｫ縺ｮ繧ｹ繝ｪ繝ｼ繧ｯ縺ｪ繝代ロ繝ｫ
+//  RD2 Flag Menu — 非脱獄内蔵MODメニュー（データフラグ方式）
+//  ・UnityFrameworkは静的トランポリン改造済み（署名前に焼込）
+//  ・このdylibは「フラグ(RWデータ)を1/0書くだけ」でトグル
+//    → コード改変じゃないのでiOS18でもクラッシュしない
+//  ・フローティング🎲 → 紫のスリークなパネル
 // ============================================================
 #import <UIKit/UIKit.h>
 #include <mach-o/dyld.h>
 #include <string.h>
 
-#pragma mark - Flag Engine・医ョ繝ｼ繧ｿ譖ｸ霎ｼ縺ｮ縺ｿ・上さ繝ｼ繝画隼螟峨↑縺暦ｼ・
+#pragma mark - Flag Engine（データ書込のみ／コード改変なし）
+
 static uintptr_t gSlide = 0;
 static bool      gResolved = false;
 static const char *kImage = "UnityFramework";
@@ -23,7 +27,8 @@ static void resolveSlide(void) {
         }
     }
 }
-// 繝輔Λ繧ｰ(RW __data)縺ｸ 1/0 繧呈嶌縺上□縺代Ｗm_protect荳崎ｦ・ｼ亥・縺九ｉRW・峨・static bool setFlag(uint64_t vmoff, bool on) {
+// フラグ(RW __data)へ 1/0 を書くだけ。vm_protect不要（元からRW）。
+static bool setFlag(uint64_t vmoff, bool on) {
     if (!gResolved) resolveSlide();
     if (!gResolved) return false;
     volatile uint8_t *p = (volatile uint8_t *)(gSlide + (uintptr_t)vmoff);
@@ -31,32 +36,37 @@ static void resolveSlide(void) {
     return true;
 }
 
-#pragma mark - Cheat 螳夂ｾｩ・・ame, sub, flag vmoffset・・// 窶ｻ繝輔Λ繧ｰ縺ｮvmoffset縺ｯ UnityFramework 髱咏噪謾ｹ騾繝・・繝ｫ縺悟牡繧雁ｽ薙※縺溷､縲・//   Phase1 POC: SP辟｡髯舌・縺ｿ・・xCEEBB90・峨ゆｻ･髯阪％縺薙↓霑ｽ險倥＠縺ｦ蠅励ｄ縺吶・static NSArray *cheats(void) {
+#pragma mark - Cheat 定義（name, sub, flag vmoffset）
+// ※フラグのvmoffsetは UnityFramework 静的改造ツールが割り当てた値。
+//   Phase1 POC: SP無限のみ（0xCEEBB90）。以降ここに追記して増やす。
+static NSArray *cheats(void) {
     return @[
-      @{ @"name":@"蜊ｳ豁ｻ",              @"sub":@"謨ｵ繧偵Ρ繝ｳ繝代Φ縺ｧ謦・ｴ",         @"flag":@(0xCEEBB90) },
-      @{ @"name":@"繝懊せ雜・↓蜉・,         @"sub":@"蟇ｾ繝懊せ繝繝｡繝ｼ繧ｸ蟾ｨ螟ｧ蛹・,        @"flag":@(0xCEEBB91) },
-      @{ @"name":@"辟｡謨ｵ",              @"sub":@"閾ｪ蛻・・HP縺梧ｸ帙ｉ縺ｪ縺・,         @"flag":@(0xCEEBB92) },
-      @{ @"name":@"SP 辟｡髯・,           @"sub":@"蜿ｬ蝟壹・蠑ｷ蛹悶′繧ｿ繝",           @"flag":@(0xCEEBB93) },
-      @{ @"name":@"SP迯ｲ蠕・+30000",     @"sub":@"謦・ｴ/繧ｦ繧ｧ繝ｼ繝・蛻晄悄SP",       @"flag":@(0xCEEBB94) },
-      @{ @"name":@"閾ｪ逕ｱ蜷域・ 笘・,         @"sub":@"蜷域・蜿ｯ蜷ｦ繧貞ｸｸ譎０K",          @"flag":@(0xCEEBB95) },
-      @{ @"name":@"閾ｪ逕ｱ蜷域・ 竭｡",         @"sub":@"遞ｮ鬘槭メ繧ｧ繝・け隗｣髯､",          @"flag":@(0xCEEBB96) },
-      @{ @"name":@"閾ｪ逕ｱ蜷域・ 竭｢",         @"sub":@"蜃ｺ逶ｮ繝√ぉ繝・け隗｣髯､",          @"flag":@(0xCEEBB97) },
-      @{ @"name":@"蛟埼・2蛟・,           @"sub":@"VIP騾溷ｺｦ縺ｨ蜷檎ｵ瑚ｷｯ",           @"flag":@(0xCEEBB98) },
-      @{ @"name":@"蟶ｸ縺ｫ豁ｻ莠｡",           @"sub":@"謨ｵ縺梧ｹｧ縺・◆迸ｬ髢薙↓豸医∴繧・螳滄ｨ鍋噪)", @"flag":@(0xCEEBB99) },
-      @{ @"name":@"蜷域・繧ｹ繧ｳ繧｢ ﾃ・",       @"sub":@"蟇ｾ謌ｦ繝｢繝ｼ繝蛾剞螳・,            @"flag":@(0xCEEBB9A) },
-      @{ @"name":@"謦・ｴ繧ｹ繧ｳ繧｢ ﾃ・ (1000)", @"sub":@"蜊泌鴨繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ=BAN豕ｨ諢・,     @"flag":@(0xCEEBB9B) },
-      @{ @"name":@"謦・ｴ繧ｹ繧ｳ繧｢ ﾃ・ (5000)", @"sub":@"蜊泌鴨繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ=BAN豕ｨ諢・,     @"flag":@(0xCEEBB9C) },
-      @{ @"name":@"謦・ｴ繧ｹ繧ｳ繧｢ ﾃ・ (50)",   @"sub":@"蜊泌鴨繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ=BAN豕ｨ諢・,     @"flag":@(0xCEEBB9D) },
-      @{ @"name":@"謦・ｴ繧ｹ繧ｳ繧｢ ﾃ・ (500)",  @"sub":@"蜊泌鴨繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ=BAN豕ｨ諢・,     @"flag":@(0xCEEBB9E) },
+      @{ @"name":@"即死",              @"sub":@"敵をワンパンで撃破",         @"flag":@(0xCEEBB90) },
+      @{ @"name":@"ボス超火力",         @"sub":@"対ボスダメージ巨大化",        @"flag":@(0xCEEBB91) },
+      @{ @"name":@"無敵",              @"sub":@"自分のHPが減らない",         @"flag":@(0xCEEBB92) },
+      @{ @"name":@"SP 無限",           @"sub":@"召喚・強化がタダ",           @"flag":@(0xCEEBB93) },
+      @{ @"name":@"SP獲得 +30000",     @"sub":@"撃破/ウェーブ/初期SP",       @"flag":@(0xCEEBB94) },
+      @{ @"name":@"自由合成 ★",         @"sub":@"合成可否を常時OK",          @"flag":@(0xCEEBB95) },
+      @{ @"name":@"自由合成 ②",         @"sub":@"種類チェック解除",          @"flag":@(0xCEEBB96) },
+      @{ @"name":@"自由合成 ③",         @"sub":@"出目チェック解除",          @"flag":@(0xCEEBB97) },
+      @{ @"name":@"倍速 2倍",           @"sub":@"VIP速度と同経路",           @"flag":@(0xCEEBB98) },
+      @{ @"name":@"常に死亡",           @"sub":@"敵が湧いた瞬間に消える(実験的)", @"flag":@(0xCEEBB99) },
+      @{ @"name":@"合成スコア ×5",       @"sub":@"対戦モード限定",            @"flag":@(0xCEEBB9A) },
+      @{ @"name":@"撃破スコア ×5 (1000)", @"sub":@"協力ランキング=BAN注意",     @"flag":@(0xCEEBB9B) },
+      @{ @"name":@"撃破スコア ×5 (5000)", @"sub":@"協力ランキング=BAN注意",     @"flag":@(0xCEEBB9C) },
+      @{ @"name":@"撃破スコア ×5 (50)",   @"sub":@"協力ランキング=BAN注意",     @"flag":@(0xCEEBB9D) },
+      @{ @"name":@"撃破スコア ×5 (500)",  @"sub":@"協力ランキング=BAN注意",     @"flag":@(0xCEEBB9E) },
     ];
 }
 
-#pragma mark - 驟崎牡・・andom Dice 2 繝・・繝橸ｼ・static UIColor *PUR(void){ return [UIColor colorWithRed:0.78 green:0.49 blue:1.00 alpha:1]; } // accent邏ｫ
+#pragma mark - 配色（Random Dice 2 テーマ）
+static UIColor *PUR(void){ return [UIColor colorWithRed:0.78 green:0.49 blue:1.00 alpha:1]; } // accent紫
 static UIColor *PUR2(void){return [UIColor colorWithRed:0.55 green:0.31 blue:0.85 alpha:1]; }
 static UIColor *PINK(void){return [UIColor colorWithRed:1.00 green:0.43 blue:0.78 alpha:1]; }
 static UIColor *GOLD(void){return [UIColor colorWithRed:1.00 green:0.84 blue:0.29 alpha:1]; }
 
-// 繝代せ繧ｹ繝ｫ繝ｼWindow・郁レ譎ｯ繧ｿ繝・メ縺ｯ繧ｲ繝ｼ繝縺ｸ・・@interface RD2Window : UIWindow @end
+// パススルーWindow（背景タッチはゲームへ）
+@interface RD2Window : UIWindow @end
 @implementation RD2Window
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
     UIView *v = [super hitTest:point withEvent:event];
@@ -107,7 +117,7 @@ static UIColor *GOLD(void){return [UIColor colorWithRed:1.00 green:0.84 blue:0.2
     g.colors=@[(id)PUR().CGColor,(id)PINK().CGColor];
     g.startPoint=CGPointMake(0,0); g.endPoint=CGPointMake(1,1);
     [b.layer insertSublayer:g atIndex:0];
-    [b setTitle:@"軸" forState:UIControlStateNormal];
+    [b setTitle:@"🎲" forState:UIControlStateNormal];
     b.titleLabel.font = [UIFont systemFontOfSize:26];
     b.layer.shadowColor=PUR().CGColor; b.layer.shadowRadius=10; b.layer.shadowOpacity=0.8; b.layer.shadowOffset=CGSizeZero;
     [b addTarget:self action:@selector(togglePanel) forControlEvents:UIControlEventTouchUpInside];
@@ -124,8 +134,8 @@ static UIColor *GOLD(void){return [UIColor colorWithRed:1.00 green:0.84 blue:0.2
 - (void)buildPanel {
     CGFloat W=306, rowH=66, headH=70;
     NSArray *list = cheats();
-    NSUInteger maxVisible = 7;                       // 縺薙ｌ莉･荳翫・繧ｹ繧ｯ繝ｭ繝ｼ繝ｫ
-    CGFloat rowsH = rowH * list.count;               // 蜈ｨ陦後・鬮倥＆
+    NSUInteger maxVisible = 7;                       // これ以上はスクロール
+    CGFloat rowsH = rowH * list.count;               // 全行の高さ
     CGFloat viewRowsH = rowH * MIN((NSUInteger)list.count, maxVisible);
     CGFloat H = headH + viewRowsH + 10;
     UIView *root = self.win.rootViewController.view;
@@ -143,12 +153,12 @@ static UIColor *GOLD(void){return [UIColor colorWithRed:1.00 green:0.84 blue:0.2
     hg.startPoint=CGPointMake(0,0); hg.endPoint=CGPointMake(1,0);
     [head.layer addSublayer:hg];
     UILabel *title=[[UILabel alloc] initWithFrame:CGRectMake(20,12,W-80,28)];
-    title.text=@"軸 Random Dice 2"; title.textColor=UIColor.whiteColor; title.font=[UIFont boldSystemFontOfSize:19];
+    title.text=@"🎲 Random Dice 2"; title.textColor=UIColor.whiteColor; title.font=[UIFont boldSystemFontOfSize:19];
     UILabel *sub=[[UILabel alloc] initWithFrame:CGRectMake(20,40,W-80,18)];
-    sub.text=@"MOD MENU  窶｢  縺九ｏ縺・￥謾ｹ騾"; sub.textColor=GOLD(); sub.font=[UIFont systemFontOfSize:11 weight:UIFontWeightSemibold];
+    sub.text=@"MOD MENU  •  かわいく改造"; sub.textColor=GOLD(); sub.font=[UIFont systemFontOfSize:11 weight:UIFontWeightSemibold];
     [head addSubview:title]; [head addSubview:sub];
     UIButton *close=[UIButton buttonWithType:UIButtonTypeCustom];
-    close.frame=CGRectMake(W-48,18,34,34); [close setTitle:@"笨・ forState:UIControlStateNormal];
+    close.frame=CGRectMake(W-48,18,34,34); [close setTitle:@"✕" forState:UIControlStateNormal];
     close.titleLabel.font=[UIFont boldSystemFontOfSize:19];
     [close addTarget:self action:@selector(togglePanel) forControlEvents:UIControlEventTouchUpInside];
     [head addSubview:close];
@@ -200,7 +210,7 @@ static UIColor *GOLD(void){return [UIColor colorWithRed:1.00 green:0.84 blue:0.2
     NSDictionary *c = cheats()[sw.tag];
     bool ok = setFlag([c[@"flag"] unsignedLongLongValue], sw.isOn);
     [self toast: ok ? [NSString stringWithFormat:@"%@ : %@", c[@"name"], sw.isOn?@"ON":@"OFF"]
-                    : @"螟ｱ謨・ UnityFramework譛ｪ讀懷・"];
+                    : @"失敗: UnityFramework未検出"];
     if(!ok) sw.on=NO;
 }
 - (void)toast:(NSString *)msg {
